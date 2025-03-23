@@ -1,0 +1,6 @@
+flickr30k_data/
+# ignore Python cache directories and compiled files
+__pycache__/
+*.py[cod]
+# ignore Jupyter Notebook checkpoints
+.ipynb_checkpoints/
