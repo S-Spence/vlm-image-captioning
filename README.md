@@ -45,3 +45,13 @@ Once the environment is setup following the preferred steps above, you can begin
 ## Running with a trained model
 
 The experiments will save the final model weights in the `/model_weights` directory. These weights can be loaded in the `main.py` script to run a test with new images. 
+
+Scripts args:
+- `--model_path`: path to saved model weights (state_dict)
+- `--tokenizer_name`: tokenizer name
+- `--image_encoder_type`: encoder type "vit" or "clip"
+- `--decoder_type`: decoder type "gpt2" or "vicuna"
+- `--llava_projections`: use llava-style projections
+- `--cross_attention`: use cross attention
+- `--gated_cross_attention`: use gated cross attention
+- `--d_model`: model dimension (768 for gpt2, 4096 for vicuna)
