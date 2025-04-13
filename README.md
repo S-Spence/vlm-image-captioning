@@ -1,6 +1,6 @@
 # Image Captioning with Language Models
 
-A Vision Language Model inspird by techiques introduced in the Llava (Large Language and Vision Assistant) [paper](https://arxiv.org/pdf/2304.08485). This approach adds multimodality to a language model by training a small multilayer perceptron (MLP) to project image patch embeddings to the text embedding space and prepending to text embeddings before feeding to the decoder module. The following diagram depicts the VLM architecture. 
+A Vision Language Model inspired by techniques introduced in the Llava (Large Language and Vision Assistant) [paper](https://arxiv.org/pdf/2304.08485). This approach adds multimodality to a language model by training a small multilayer perceptron (MLP) to project image patch embeddings to the text embedding space and prepending to text embeddings before feeding to the decoder module. The following diagram depicts the VLM architecture. 
 
 ![alt text](architecture-diagram.png)
 
@@ -32,7 +32,7 @@ If you do not have access to a GPU, the best way to run this project is in Googl
 - `/experiments/*`: directory containing the notebooks for each experiment
 - `download_data.py`: script to download and partition the flickr30k dataset
 - `data_processing.py`: script containing batch loading and data visualization helper functions
-- `evaluation.py`: scipt containing evaluation helper functions
+- `evaluation.py`: script containing evaluation helper functions
 - `train.py`: the VLM training loop and plotting functions
 - `vision_language_model.py`: the main class for the `VisionLanguageModel`
 - `main.py`: a script to load a model from a weights file and run an endpoint that takes a single image and returns a single caption
@@ -40,7 +40,7 @@ If you do not have access to a GPU, the best way to run this project is in Googl
 
 ## Development
 
-Once the environement is setup following the preferred steps above, you can begin development by creating a copy of one of the notebooks and naming it `experiment_n.ipynb`. Then, tune the training parameters or model type and run a new experiment. Don't forgot to change the `experiment_name` variable at the top of the notebook to be used for file names. 
+Once the environment is setup following the preferred steps above, you can begin development by creating a copy of one of the notebooks and naming it `experiment_n.ipynb`. Then, tune the training parameters or model type and run a new experiment. Don't forget to change the `experiment_name` variable at the top of the notebook to be used for file names. 
 
 ## Running with a trained model
 

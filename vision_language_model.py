@@ -40,6 +40,13 @@ class VisionLanguageModel(nn.Module):
     def _init_image_encoder(self, image_encoder_type: str, d_model: int) -> nn.Module:
         """
         Initialize the image encoder based on type and projection config.
+
+        Parameters:
+            image_encoder_type (str): type of image encoder to use ('vit' or 'clip')
+            d_model (int): target embedding dimension for the language model
+
+        Returns:
+            nn.Module: the initialized image encoder (ImageEncoder or LLavaProjectionEncoder)
         """
         if self.llava_projections:
             return LLavaProjectionEncoder(
@@ -116,7 +123,7 @@ class VisionLanguageModel(nn.Module):
 
     def predict(self, batch_images, max_new_tokens=15, do_sample=False, top_p=0.9, temperature=1.0, n_beams=1):
         """
-        Predict captions for a list of images, optionally using top-p sampling.
+        Predict captions for a list of images
         
         Parameters:
             batch_images (List[Image or Tensor]): List of image tensors or PIL images
