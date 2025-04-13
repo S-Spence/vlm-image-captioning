@@ -243,7 +243,7 @@ def plot_and_save_epoch_loss(running_avg_losses, save_path="loss_over_epochs.jpg
     """
     Compute, plot, and save the average loss over epochs.
     
-    Args:
+    Parameters:
         running_avg_losses (list of list of float): Each inner list contains the running 
             average loss values recorded at evaluation steps within an epoch.
         save_path (str, optional): File path to save the plot image. Defaults to "loss_over_epochs.png".

@@ -82,6 +82,7 @@ def display_predicted_captions_grid(image_pred_pairs, save_captions_path=None, t
     Parameters:
         image_pred_pairs (List[Tuple[Image, str]]): List of tuples containing images and their predicted captions.
         save_captions_path (str, optional): Path to save the plot image.
+        title (str, optional): Title for the plot.
     """
     assert len(image_pred_pairs) >= 6
     
@@ -114,6 +115,7 @@ def save_experiment_results(experiment, cider, bleu, results_path="results.csv")
         experiment (str): Name of the experiment
         cider (float): CIDEr score
         bleu (float): BLEU score
+        results_path (str): Path to the CSV file where results are saved
     """
     if os.path.exists(results_path):
         df = pd.read_csv(results_path)

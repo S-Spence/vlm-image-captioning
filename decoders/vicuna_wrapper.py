@@ -33,6 +33,7 @@ class VicunaDecoder(torch.nn.Module):
                 trainable_params = sum(p.numel() for p in self.model.parameters() if p.requires_grad)
                 print(f"LoRA adapters added—trainable params: {trainable_params}")
 
+    # expose model methods
     def forward(self, input_ids=None, inputs_embeds=None, **kwargs):
         return self.model(input_ids=input_ids, inputs_embeds=inputs_embeds, **kwargs)
 

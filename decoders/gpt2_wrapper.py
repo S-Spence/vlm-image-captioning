@@ -77,6 +77,15 @@ class GPT2Decoder(nn.Module):
             return self.model(input_ids=input_ids, inputs_embeds=inputs_embeds, **kwargs)
         
     def generate_with_cross_attention(self, **kwargs):
+        """
+        Patch the forward pass for model.generate() to include encoder_hidden_states.
+
+        Parameters:
+            **kwargs: Additional arguments for the generate method.
+
+        Returns:
+            outputs: generated outputs from the model.
+        """
 
         original_model_forward = self.model.forward
         do_sample = kwargs.get("do_sample", False)
