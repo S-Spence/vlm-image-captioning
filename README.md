@@ -46,7 +46,7 @@ Once the environment is setup following the preferred steps above, you can begin
 
 The experiments will save the final model weights in the `/model_weights` directory. These weights can be loaded in the `main.py` script to run a test with new images. 
 
-Scripts args:
+Script args:
 - `--model_path`: path to saved model weights (state_dict)
 - `--tokenizer_name`: tokenizer name
 - `--image_encoder_type`: encoder type "vit" or "clip"
