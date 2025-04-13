@@ -60,11 +60,10 @@ def evaluate_bleu_cider(model, data_loader, display_captions=False, save_caption
                 break
 
     if display_captions:
-        title = "Experiment 1: "
         if do_sample:
-            title += f"Sample Approach: Top-p: {top_p}, Temperature: {temperature}"
+            title = f"Sample Approach: Top-p: {top_p}, Temperature: {temperature}"
         else:
-            title += f"Sample Approach: Num beams: {num_beams}"
+            title = f"Sample Approach: Num beams: {num_beams}"
         display_predicted_captions_grid(image_pred_pairs, save_captions_path, title)
 
     print(f"Sample Prediction: {predictions[0]}, Reference: {targets[0]}")
