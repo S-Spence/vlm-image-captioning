@@ -2,7 +2,7 @@
 
 A Vision Language Model inspired by techniques introduced in the Llava (Large Language and Vision Assistant) [paper](https://arxiv.org/pdf/2304.08485). This approach adds multimodality to a language model by training a small multilayer perceptron (MLP) to project image patch embeddings to the text embedding space and prepending to text embeddings before feeding to the decoder module. The following diagram depicts the VLM architecture. 
 
-![alt text](architecture-diagram.png)
+![alt text](architecture-diagram.png.png)
 
 See the full paper for more details about motivations, experiment results, and future research. 
 
