@@ -8,15 +8,15 @@ from decoders.vicuna_wrapper import VicunaDecoder
 
 class VisionLanguageModel(nn.Module):
     def __init__(self, tokenizer, image_encoder_type="vit", decoder_type="gpt2", llava_projections=False,
-                 cross_attention=True, gated_cross_attention=True, debug=False, d_model=768):
+                 cross_attention=False, gated_cross_attention=False, debug=False, d_model=768):
         """
         Params:
             tokenizer: HuggingFace tokenizer.
             image_encoder_type (str): type of image encoder to use ('vit' or 'clip')
             decoder_type (str): type of decoder to use ('gpt2', 'vicuna')
             llava_projections (bool): use LLaVA-style projections
-            cross_attention (bool): use cross attention in the decoder
-            gated_cross_attention (bool): use gated cross attention in the decoder
+            cross_attention (bool): use cross attention in the decoder (not implemented yet)
+            gated_cross_attention (bool): use gated cross attention in the decoder (not implemented yet)
             debug (bool): print debug information
             d_model (int): target embedding dimension for the language model
         """
@@ -27,8 +27,10 @@ class VisionLanguageModel(nn.Module):
         
         self.tokenizer = tokenizer
         self.llava_projections = llava_projections
-        self.cross_attention = cross_attention
-        self.gated_cross_attention = gated_cross_attention
+
+        if cross_attention or gated_cross_attention:
+            raise ValueError("cross_attention and gated_cross_attention are not yet implemented")
+        
         self.decoder_type = decoder_type
 
         # initialize the image encoder
@@ -74,11 +76,7 @@ class VisionLanguageModel(nn.Module):
         """
         if model_type == "gpt2":
             print("Initializing GPT-2 model...")
-            gpt = GPT2Decoder(
-                cross_attention=self.cross_attention,
-                gated_cross_attention=self.gated_cross_attention
-            ).to(self.device)
-            return gpt
+            return GPT2Decoder(debug=self.debug).to(self.device)
         if model_type == "vicuna":
             print("Initializing Vicuna model...")
             return VicunaDecoder(debug=self.debug).to(self.device)
@@ -106,17 +104,13 @@ class VisionLanguageModel(nn.Module):
         if self.debug:
             print("Image embeddings shape:", image_embeddings.shape)
         
-        if not self.cross_attention:
-            # prepend text tokens to inputs for regular llava approach
-            input_embeds = self.decoder.get_input_embeddings()(tokens)
+        # prepend text tokens to inputs for regular llava approach
+        input_embeds = self.decoder.get_input_embeddings()(tokens)
 
-            prepended = torch.cat([image_embeddings, input_embeds], dim=1)
+        prepended = torch.cat([image_embeddings, input_embeds], dim=1)
 
-            output = self.decoder(input_ids=None, inputs_embeds=prepended)
-        else:
-            # use cross attention
-            output = self.decoder(tokens, encoder_hidden_states=image_embeddings)
-
+        output = self.decoder(input_ids=None, inputs_embeds=prepended)
+        
         # different models have different output shapes, check for logits or get them
         logits = output if isinstance(output, torch.Tensor) else output.logits
         return logits
@@ -138,15 +132,10 @@ class VisionLanguageModel(nn.Module):
         """
         self.eval()
         
-        if self.cross_attention:
-            # Use a simple prompt: a tensor of shape [batch_size, 1] with BOS token.
-            input_ids = torch.full((len(batch_images), 1), self.tokenizer.bos_token_id, 
-                                    dtype=torch.long, device=self.device)
-        else:
-            # prepend "Caption:" as the prompt.
-            input_ids = self.tokenizer(["Caption:"] * len(batch_images), 
-                                    return_tensors="pt", 
-                                    padding=True, truncation=True).input_ids.to(self.device)
+        # prepend "Caption:" as the prompt.
+        input_ids = self.tokenizer(["Caption:"] * len(batch_images), 
+                        return_tensors="pt", 
+                        padding=True, truncation=True).input_ids.to(self.device)
         
         # setup common params
         kwargs = {
@@ -165,22 +154,13 @@ class VisionLanguageModel(nn.Module):
             kwargs["early_stopping"] = True
             kwargs["length_penalty"] = 0.6
 
-        # generate captions with optional cross attention
-        if self.cross_attention:
-            attention_mask = torch.ones(input_ids.shape, device=self.device)
-            kwargs["input_ids"] = input_ids
-            kwargs["encoder_hidden_states"] = self.image_encoder(batch_images)
-            kwargs["attention_mask"] = attention_mask
-
-            outputs = self.decoder.generate_with_cross_attention(**kwargs)
-        else:
-            image_embeddings = self.image_encoder(batch_images)
-            token_embeddings = self.decoder.get_input_embeddings()(input_ids)
-            inputs_embeds = torch.cat([image_embeddings, token_embeddings], dim=1)
-            attention_mask = torch.ones(inputs_embeds.shape[:2], device=self.device)
-            kwargs["inputs_embeds"] = inputs_embeds
-            kwargs["attention_mask"] = attention_mask
-            
-            outputs = self.decoder.generate(**kwargs)
+        image_embeddings = self.image_encoder(batch_images)
+        token_embeddings = self.decoder.get_input_embeddings()(input_ids)
+        inputs_embeds = torch.cat([image_embeddings, token_embeddings], dim=1)
+        attention_mask = torch.ones(inputs_embeds.shape[:2], device=self.device)
+        kwargs["inputs_embeds"] = inputs_embeds
+        kwargs["attention_mask"] = attention_mask
+        
+        outputs = self.decoder.generate(**kwargs)
         
         return self.tokenizer.batch_decode(outputs, skip_special_tokens=True)

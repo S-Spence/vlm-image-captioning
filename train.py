@@ -74,25 +74,13 @@ def train(model, train_dir, val_dir, loss_function, device, learning_rate=2e-5,
             if step >= max_batches:
                 break
 
-            if model.cross_attention:
-                model.tokenizer.padding_side = 'left'
-                full_captions = [caption[0] for caption in captions]
-                tokenized = model.tokenizer(full_captions, return_tensors="pt", padding=True, truncation=True).to(device)
-                input_ids = tokenized.input_ids
-
-                # build shifted inputs and targets
-                bos = torch.full((input_ids.size(0), 1), model.tokenizer.bos_token_id, dtype=torch.long, device=device)
-                inputs = torch.cat([bos, input_ids[:, :-1]], dim=1) 
-                targets = input_ids
-
-            else:
-                # structure prompts for the model
-                # in training mode, captions will always be a list with one caption
-                # because images will be included again with the other captions
-                prompts = [f"Caption: {caption[0]}" for caption in captions]
-                input_ids = model.tokenizer(prompts, return_tensors="pt", padding=True, truncation=True).input_ids.to(device)
-                inputs = input_ids[:, :-1]
-                targets = input_ids[:, 1:]
+            # structure prompts for the model
+            # in training mode, captions will always be a list with one caption
+            # because images will be included again with the other captions
+            prompts = [f"Caption: {caption[0]}" for caption in captions]
+            input_ids = model.tokenizer(prompts, return_tensors="pt", padding=True, truncation=True).input_ids.to(device)
+            inputs = input_ids[:, :-1]
+            targets = input_ids[:, 1:]
 
             optimizer.zero_grad()
 
@@ -100,16 +88,14 @@ def train(model, train_dir, val_dir, loss_function, device, learning_rate=2e-5,
 
             logits = logits.transpose(1, 2)
 
-            # remove the prefix image tokens only if cross attention is not used
-            num_image_tokens = model.image_encoder.num_image_tokens if not model.cross_attention else 0
+            # remove the prefix image tokens 
+            num_image_tokens = model.image_encoder.num_image_tokens
             # drop the image embedding and only calculate loss of the caption
             logits = logits[:, :, num_image_tokens:]
 
-            # also drop the Caption: prefix from loss calculations for the 
-            # non-cross attention case
-            if not model.cross_attention:
-                logits = logits[:, :, prefix_len:]
-                targets = targets[:, prefix_len:]
+            # also drop the Caption: prefix from loss calculations
+            logits = logits[:, :, prefix_len:]
+            targets = targets[:, prefix_len:]
 
             loss = loss_function(logits, targets)
 
@@ -150,7 +136,7 @@ def train(model, train_dir, val_dir, loss_function, device, learning_rate=2e-5,
         torch.save(model.image_encoder.projection.state_dict(), mlp_weights_path)
         print(f"MLP weights saved to {mlp_weights_path}")
 
-    # plot loss over epochs for fine tuning and sabe the decoder wieghts
+    # plot loss over epochs for fine tuning and save the decoder wieghts
     if training_type == "sft" or training_type == "lora":
         plot_and_save_epoch_loss(all_epoch_losses, save_path=all_epochs_loss_plot_path)
         # save model
@@ -239,17 +225,17 @@ def plot_running_loss(all_epoch_losses, all_image_counts, save_path="training_lo
     plt.savefig(save_path)
     plt.close()
 
-def plot_and_save_epoch_loss(running_avg_losses, save_path="loss_over_epochs.jpg"):
+def plot_and_save_epoch_loss(avg_losses, save_path="loss_over_epochs.jpg"):
     """
     Compute, plot, and save the average loss over epochs.
     
     Parameters:
-        running_avg_losses (list of list of float): Each inner list contains the running 
+        avg_losses (list of list of float): Each inner list contains the running 
             average loss values recorded at evaluation steps within an epoch.
         save_path (str, optional): File path to save the plot image. Defaults to "loss_over_epochs.png".
     """
     # compute the average loss per epoch
-    epoch_avg_losses = [sum(epoch_losses) / len(epoch_losses) for epoch_losses in running_avg_losses]
+    epoch_avg_losses = [sum(epoch_losses) / len(epoch_losses) for epoch_losses in avg_losses]
     
     epochs = range(1, len(epoch_avg_losses) + 1)
     plt.figure(figsize=(8, 6))
