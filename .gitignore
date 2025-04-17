@@ -5,4 +5,3 @@ __pycache__/
 # ignore Jupyter Notebook checkpoints
 .ipynb_checkpoints/
 model_weights/
-evaluations/
