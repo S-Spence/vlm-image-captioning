@@ -68,8 +68,8 @@ def partition_images(output_dir, train_ratio=0.8, seed=42):
     os.makedirs(test_dir, exist_ok=True)
     
     # gather image files.
-    image_files = [f for f in os.listdir(images_dir)
-                   if f.lower().endswith((".jpg", ".jpeg", ".png"))]
+    image_files = sorted([f for f in os.listdir(images_dir)
+                   if f.lower().endswith((".jpg", ".jpeg", ".png"))])
     random.seed(seed)
     random.shuffle(image_files)
     
