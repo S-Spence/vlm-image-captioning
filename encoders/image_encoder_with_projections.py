@@ -5,7 +5,6 @@ from PIL import Image
 import requests
 from io import BytesIO
 
-
 # feature extraction based on llava impementation: 
 # https://github.com/haotian-liu/LLaVA/blob/main/llava/model/multimodal_encoder/clip_encoder.py
 class LLavaProjectionEncoder(nn.Module):

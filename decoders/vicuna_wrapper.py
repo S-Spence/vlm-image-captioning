@@ -31,7 +31,7 @@ class VicunaDecoder(torch.nn.Module):
             self.is_lora_applied = True
             if self.debug:
                 trainable_params = sum(p.numel() for p in self.model.parameters() if p.requires_grad)
-                print(f"LoRA adapters added—trainable params: {trainable_params}")
+                print(f"LoRA adapters added trainable params: {trainable_params}")
 
     # expose model methods
     def forward(self, input_ids=None, inputs_embeds=None, **kwargs):

@@ -1,5 +1,3 @@
-# download_flickr30k.py
-
 import os
 import zipfile
 import random
