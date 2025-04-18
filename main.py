@@ -3,8 +3,9 @@ from flask import Flask, request, jsonify
 import torch
 from PIL import Image
 from transformers import AutoTokenizer
-from vison_language_model import VisionLanguageModel
+from vision_language_model import VisionLanguageModel
 import os
+from peft import set_peft_model_state_dict
 
 app = Flask(__name__)
 
@@ -22,21 +23,28 @@ def load_model(args):
         cross_attention=args.cross_attention,
         gated_cross_attention=args.gated_cross_attention,
         debug=False,
-        d_model=args.d_model,
+        d_model=args.d_model
     )
 
-    if args.train_type == "lora":
-        # add LoRA adapters if training type is LoRA
-        model.decoder.add_lora()
+    device = torch.device("cuda" if torch.cuda.is_available() else "mps" if torch.backends.mps.is_available() else "cpu")
 
-    # load weights
-    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-    if args.train_type == "mlp-pretrain":
+    if args.train_type == "lora":
+        model.decoder.add_lora()
+        state_dict = torch.load(args.model_path, map_location=device)
+        # load LoRA weights into the decoder
+        set_peft_model_state_dict(model.decoder.model, state_dict["lora"])
+        # load MLP weights into the image encoder
+        model.image_encoder.projection.load_state_dict(state_dict["mlp"])
+
+    elif args.train_type == "mlp-pretrain":
         model.image_encoder.projection.load_state_dict(torch.load(args.model_path, map_location=device))
+
     else:
         state_dict = torch.load(args.model_path, map_location=device)
         model.load_state_dict(state_dict)
+
     model.to(device)
+
     model.eval()
 
     return model
@@ -55,7 +63,7 @@ def caption():
         return jsonify({"error": f"Unable to open image: {str(e)}"}), 400
 
     try:
-        caption_list = app.model.predict([image], max_new_tokens=15)
+        caption_list = app.model.predict([image], max_new_tokens=15, n_beams=2)
         caption = caption_list[0]
     except Exception as e:
         return jsonify({"error": f"Prediction error: {str(e)}"}), 500
@@ -72,8 +80,7 @@ def parse_args():
     parser.add_argument("--cross_attention", action="store_true")
     parser.add_argument("--gated_cross_attention", action="store_true")
     parser.add_argument("--d_model", type=int, default=768)
-    parser.add_argument("--train_type", choices=["mlp-pretrain", "lora"], default="finetune",
-                        help="Training type: finetune, mlp-pretrain or lora")
+    parser.add_argument("--train_type", choices=["finetune", "mlp-pretrain", "lora"], default="finetune")
     return parser.parse_args()
 
 if __name__ == "__main__":

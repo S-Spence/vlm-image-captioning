@@ -16,3 +16,4 @@ peft
 Flask
 huggingface_hub>=0.14.1
 python-dotenv
+protobuf

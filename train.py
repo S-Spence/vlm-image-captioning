@@ -4,6 +4,7 @@ import matplotlib.cm as cm
 import data_processing as dp
 import numpy as np
 import evaluation as eval
+from peft import get_peft_model_state_dict
 
 def train(model, train_dir, val_dir, loss_function, device, learning_rate=2e-5,
           lr_scheduler=False, batch_size=4, num_epochs=3, log_interval=100, max_batches=10000,
@@ -135,13 +136,22 @@ def train(model, train_dir, val_dir, loss_function, device, learning_rate=2e-5,
     if training_type == "mlp-pretrain" and mlp_weights_path is not None:
         torch.save(model.image_encoder.projection.state_dict(), mlp_weights_path)
         print(f"MLP weights saved to {mlp_weights_path}")
-
     # plot loss over epochs for fine tuning and save the decoder wieghts
-    if training_type == "sft" or training_type == "lora":
+    elif training_type == "sft":
         plot_and_save_epoch_loss(all_epoch_losses, save_path=all_epochs_loss_plot_path)
         # save model
         torch.save(model.state_dict(), model_weights_path)
         print(f"Decoder model saved to {model_weights_path}")
+    elif training_type == "lora":
+        plot_and_save_epoch_loss(all_epoch_losses, save_path=all_epochs_loss_plot_path)
+        lora_weights = get_peft_model_state_dict(model.decoder.model)
+        mlp_weights = model.image_encoder.projection.state_dict()
+        weights_dict = {
+            "lora": lora_weights,
+            "mlp": mlp_weights
+        }
+        torch.save(weights_dict, model_weights_path)
+        print(f"LoRA + MLP weights saved to {model_weights_path}")
 
     print("\nTraining complete.")
 
