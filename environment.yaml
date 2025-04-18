@@ -1,7 +1,7 @@
 name: image_captioning
 channels:
-  - pytorch
   - conda-forge
+  - pytorch
   - defaults
 dependencies:
   - python=3.10
@@ -17,9 +17,11 @@ dependencies:
   - pyarrow>=10.0.0
   - matplotlib
   - ipykernel
+  - python-dotenv
   - pip:
       - requests
       - evaluate
       - pycocoevalcap
       - peft
       - Flask
+      - huggingface_hub>=0.14.1

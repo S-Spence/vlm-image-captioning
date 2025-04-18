@@ -25,10 +25,17 @@ def load_model(args):
         d_model=args.d_model,
     )
 
+    if args.train_type == "lora":
+        # add LoRA adapters if training type is LoRA
+        model.decoder.add_lora()
+
     # load weights
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-    state_dict = torch.load(args.model_path, map_location=device)
-    model.load_state_dict(state_dict)
+    if args.train_type == "mlp-pretrain":
+        model.image_encoder.projection.load_state_dict(torch.load(args.model_path, map_location=device))
+    else:
+        state_dict = torch.load(args.model_path, map_location=device)
+        model.load_state_dict(state_dict)
     model.to(device)
     model.eval()
 
@@ -65,6 +72,8 @@ def parse_args():
     parser.add_argument("--cross_attention", action="store_true")
     parser.add_argument("--gated_cross_attention", action="store_true")
     parser.add_argument("--d_model", type=int, default=768)
+    parser.add_argument("--train_type", choices=["mlp-pretrain", "lora"], default="finetune",
+                        help="Training type: finetune, mlp-pretrain or lora")
     return parser.parse_args()
 
 if __name__ == "__main__":
