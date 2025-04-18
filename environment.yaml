@@ -1,0 +1,28 @@
+name: image_captioning
+channels:
+  - conda-forge
+  - pytorch
+  - defaults
+dependencies:
+  - python=3.10
+  - pytorch>=1.12
+  - torchvision
+  - numpy
+  - pillow
+  - pip
+  - datasets>=1.12.1
+  - transformers>=4.0
+  - tokenizers>=0.13.3
+  - sentencepiece
+  - pyarrow>=10.0.0
+  - matplotlib
+  - ipykernel
+  - python-dotenv
+  - pip:
+      - requests
+      - evaluate
+      - pycocoevalcap
+      - peft
+      - Flask
+      - huggingface_hub>=0.14.1
+      - protobuf
